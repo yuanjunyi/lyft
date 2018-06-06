@@ -1,36 +1,28 @@
 from mxnet import image
 from utils import show_rows
 import matplotlib.pyplot as plt
+import cv2
+
+
+def annotate(img, car, road):
+    car[:, :, 0] = 0
+    car[:, :, 1] = 0
+    car = car * 200
+
+    road[:, :, 0] = 0
+    road[:, :, 2] = 0
+    road = road * 100
+
+    return (img.astype('float32') +
+            road.astype('float32') +
+            car.astype('float32')).clip(0, 255).astype('uint8')
+
 
 if __name__ == '__main__':
-    # encoder = models.resnet34_v2(pretrained=False, ctx=mx.gpu()).features
-    # net = UnetResnet34(encoder, nclass=3, nfilter=16)
-    # net.load_params('net_4_0.992_0.993.params', ctx=mx.gpu())
-    
-    # j = 23
-    # for i in range(61, 71):
-    #     img = image.imread('Carla/CameraRGB/F%d-%d.png' % (i, j)).as_in_context(mx.gpu())
-    #     pred = predict(img, net)
-    #     car_result, road_result = postprocess(pred)
-    #     cv2.imwrite('car%d.png' % i, car_result)
-    #     cv2.imwrite('road%d.png' % i, road_result)
-
-    imgs = []
-    labels = []
-    cars = []
-    roads = []
-
-    j = 23
-    for i in range(61, 71):
-        img = image.imread('Carla/CameraRGB/F%d-%d.png' % (i, j))
-        label = image.imread('Carla/CameraSeg/F%d-%d.png' % (i, j))[:,:,0]
-        
-        car = image.imread('car%d.png' % i)[:,:,0]
-        road = image.imread('road%d.png' % i)[:,:,0]
-
-        imgs.append(img)
-        labels.append(label)
-        cars.append(car)
-        roads.append(road)
-        
-    show_rows([imgs, labels, cars, roads])
+    for i in range(26, 30):
+        img = image.imread('../CameraRGB/%d.png' % i)
+        car = image.imread('../prediction/car%d.png' % i)
+        road = image.imread('../prediction/road%d.png' % i)
+        annotated = annotate(img, car, road)
+        cv2.imwrite('annotated%d.png' % i,
+                    cv2.cvtColor(annotated.asnumpy(), cv2.COLOR_RGB2BGR))
